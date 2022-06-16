@@ -1,4 +1,4 @@
-# Go-URL-Shortener
+# Crisp-URL
 A URL shortener built using React, Go-Fiber and Redis
 
 ## Setup Instructions
