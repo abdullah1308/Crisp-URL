@@ -1,138 +1,174 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Container, FormControl, TextField, Typography, Link } from "@mui/material";
+import {
+    Container,
+    FormControl,
+    TextField,
+    Typography,
+    Link,
+} from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { Box } from "@mui/system";
+import { useEffect } from "react";
 
 const DEFAULT_SHORT_HELPER = "Shortened URL Example: localhost:3000/<short>";
 
 function ShortenForm() {
-    const [url, setUrl] = useState("");
-    const [shortUrl, setShortUrl] = useState("");
-    const [expiry, setExpiry] = useState(1);
-    const [shortTitle, setShortTitle] = useState("");
-    const [resultShort, setResultShort] = useState("");
+    const initialFormValues = { url: "", short: "", expiry: 1 };
+    const [formValues, setFormValues] = useState(initialFormValues);
+    const [formErrors, setFormErrors] = useState({});
 
-    const [urlHelper, setUrlHelper] = useState("");
-    const [urlError, setUrlError] = useState(false);
-    const [shortHelper, setShortHelper] = useState(DEFAULT_SHORT_HELPER);
-    const [shortError, setShortError] = useState(false);
+    const initialResponseValues = { title: "", short: "" };
+    const [responseValues, setResponseValues] = useState(initialResponseValues);
 
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setUrlError(false);
-        setUrlHelper("");
-
-        setShortError(false);
-        setShortHelper(DEFAULT_SHORT_HELPER);
-
-        setShortTitle("");
-        setResultShort("");
-
-        if (url == "") {
-            setUrlError(true);
-            setUrlHelper("Please enter a URL");
-            return;
+    const handleChange = (e) => {
+        var { name, value } = e.target;
+        if (name === "expiry") {
+            value = parseInt(value, 10);
+            if (value < 1) value = 1;
         }
-
-        setLoading(true);
-        axios
-            .post("http://localhost:8080/shorten", {
-                url: url.trim(),
-                short: shortUrl.trim(),
-                expiry: expiry,
-            })
-            .then((res) => {
-                setUrl("");
-                setShortUrl("");
-                setExpiry(1);
-                setLoading(false);
-                
-                setShortTitle("Short URL (expires in " + res.data.expiry + " hrs)");
-                setResultShort(res.data.short);
-                // toast.success("URL shortened successfully");
-            })
-            .catch((err) => {
-                setLoading(false);
-                let errMessage = err.response.data.error;
-                if(errMessage === "Cannot parse JSON") {
-                    setUrl("");
-                    setShortUrl("");
-                    setExpiry(1);
-                    toast.error("Could not shorten URL. Please try again.");
-                } else if (errMessage === "Rate limit exceeded") {
-                    toast.error("Please try again in " + err.response.data.rate_limit_reset + " minutes");
-                } else if (errMessage === "Invalid URL") {
-                    setUrlError(true);
-                    setUrlHelper("Please enter a valid URL");
-                } else if (errMessage === "This URL cannot be shortened") {
-                    setUrlError(true);
-                    setUrlHelper(errMessage);
-                } else if (errMessage === "URL custom short is already in use") {
-                    setShortError(true);
-                    setShortHelper(errMessage);
-                } else {
-                    toast.error(errMessage + ". Please try again");
-                }
-            });
+        setFormValues({ ...formValues, [name]: value });
     };
 
+    const validate = (values) => {
+        const errors = {};
+        if (!values.url) {
+            errors.url = "URL is required!";
+        }
+
+        return errors;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setFormErrors(validate(formValues));
+        setResponseValues(initialResponseValues);
+        setLoading(true);
+    };
+
+    useEffect(() => {
+        if (loading === true && Object.keys(formErrors).length === 0) {
+            axios
+                .post("http://localhost:8080/shorten", {
+                    url: formValues.url.trim(),
+                    short: formValues.short.trim(),
+                    expiry: formValues.expiry,
+                })
+                .then((res) => {
+                    setFormValues(initialFormValues);
+                    setLoading(false);
+                    setResponseValues({
+                        title:
+                            "Short URL (expires in " +
+                            res.data.expiry +
+                            " hrs)",
+                        short: res.data.short,
+                    });
+                })
+                .catch((err) => {
+                    setLoading(false);
+                    let errMessage = err.response.data.error;
+                    if (errMessage === "Cannot parse JSON") {
+                        setFormValues(initialFormValues);
+                        toast.error("Could not shorten URL. Please try again.");
+                    } else if (errMessage === "Rate limit exceeded") {
+                        toast.error(
+                            "Please try again in " +
+                                err.response.data.rate_limit_reset +
+                                " minutes"
+                        );
+                    } else if (errMessage === "Invalid URL") {
+                        setFormErrors({
+                            ...formErrors,
+                            url: "Please enter a valid URL",
+                        });
+                    } else if (errMessage === "This URL cannot be shortened") {
+                        setFormErrors({ ...formErrors, url: errMessage });
+                    } else if (
+                        errMessage === "URL custom short is already in use"
+                    ) {
+                        setFormErrors({ ...formErrors, short: errMessage });
+                    } else {
+                        toast.error(errMessage + ". Please try again");
+                    }
+                });
+        } else if (loading === true && Object.keys(formErrors).length !== 0) {
+            setLoading(false);
+        }
+    }, [loading, formValues, formErrors, responseValues, initialFormValues]);
+
     return (
-        <Container maxWidth="sm" sx={{mt: 15}}>
+        <Container maxWidth="sm" sx={{ mt: 15 }}>
             <form noValidate autoComplete="off" onSubmit={handleSubmit}>
                 <FormControl fullWidth>
                     <TextField
-                        onChange={(e) => setUrl(e.target.value)}
+                        name="url"
                         label="URL"
-                        value={url}
-                        error={urlError}
-                        helperText={urlHelper}
+                        placeholder="URL"
+                        onChange={handleChange}
+                        value={formValues.url}
+                        error={formErrors.url}
+                        helperText={formErrors.url}
                         variant="outlined"
                         required
-                        
                     />
                     <TextField
-                        sx={{ mt: 3 }}
-                        onChange={(e) => setShortUrl(e.target.value)}
+                        name="short"
                         label="Short"
-                        value={shortUrl}
-                        error={shortError}
-                        helperText={shortHelper}
+                        placeholder="Short"
+                        onChange={handleChange}
+                        value={formValues.short}
+                        error={formErrors.short}
+                        helperText={
+                            formErrors.short
+                                ? formErrors.short
+                                : DEFAULT_SHORT_HELPER
+                        }
                         variant="outlined"
+                        sx={{ mt: 3 }}
                     />
                     <TextField
-                        sx={{ mt: 3 }}
-                        type="number"
-                        inputProps={{ min: 1 }}
-                        onChange={(e) => {
-                            var value = parseInt(e.target.value, 10);
-                            if (value < 1) value = 1;
-
-                            setExpiry(value);
-                        }}
+                        name="expiry"
                         label="Expiry (in hours)"
-                        value={expiry}
+                        type="number"
+                        onChange={handleChange}
+                        value={formValues.expiry}
                         variant="outlined"
+                        sx={{ mt: 3 }}
+                        inputProps={{ min: 1 }}
                     />
                     <Box textAlign="center">
                         <LoadingButton
-                            variant="contained"
                             type="submit"
                             loading={loading}
-                            // onClick={() => setLoading(true)}
-                            sx={{ display: "inline-block", mt: 3, bgcolor: "#328CC1" }}
+                            variant="contained"
+                            sx={{
+                                display: "inline-block",
+                                mt: 3,
+                                bgcolor: "#328CC1",
+                            }}
                         >
                             Shorten
                         </LoadingButton>
                     </Box>
                 </FormControl>
             </form>
-            <Box textAlign="center" sx={{mt: 3}}>
-            <Typography variant="h6" component="p">{shortTitle}</Typography>
-            <Link href={resultShort} target="_blank" underline="hover" variant="body1" rel="noopener noreferrer">{resultShort}</Link>
+            <Box textAlign="center" sx={{ mt: 3 }}>
+                <Typography variant="h6" component="p">
+                    {responseValues.title}
+                </Typography>
+                <Link
+                    href={responseValues.short}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    underline="hover"
+                    variant="body1"
+                >
+                    {responseValues.short}
+                </Link>
             </Box>
         </Container>
     );

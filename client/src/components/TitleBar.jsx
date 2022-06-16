@@ -10,7 +10,7 @@ export default function TitleBar() {
       <AppBar position="static" sx={{bgcolor: "#0B3C5D"}}>
         <Toolbar>
           <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
-            URL Shortener
+            Crisp URL
           </Typography>
         </Toolbar>
       </AppBar>
