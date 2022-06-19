@@ -26,10 +26,6 @@ function ShortenForm() {
 
     const handleChange = (e) => {
         var { name, value } = e.target;
-        if (name === "expiry") {
-            value = parseInt(value, 10);
-            if (value < 1) value = 1;
-        }
         setFormValues({ ...formValues, [name]: value });
     };
 
@@ -37,6 +33,11 @@ function ShortenForm() {
         const errors = {};
         if (!values.url) {
             errors.url = "URL is required!";
+        }
+
+        let expiry = parseInt(values.expiry, 10);
+        if(isNaN(expiry) || expiry < 1) {
+            errors.expiry = "Expiry must be 1 or greater!";  
         }
 
         return errors;
@@ -55,7 +56,7 @@ function ShortenForm() {
                 .post("http://localhost:8080/shorten", {
                     url: formValues.url.trim(),
                     short: formValues.short.trim(),
-                    expiry: formValues.expiry,
+                    expiry: parseInt(formValues.expiry.trim(), 10),
                 })
                 .then((res) => {
                     setFormValues(initialFormValues);
@@ -110,7 +111,7 @@ function ShortenForm() {
                         placeholder="URL"
                         onChange={handleChange}
                         value={formValues.url}
-                        error={formErrors.url}
+                        error={"url" in formErrors}
                         helperText={formErrors.url}
                         variant="outlined"
                         required
@@ -121,7 +122,7 @@ function ShortenForm() {
                         placeholder="Short"
                         onChange={handleChange}
                         value={formValues.short}
-                        error={formErrors.short}
+                        error={"short" in formErrors}
                         helperText={
                             formErrors.short
                                 ? formErrors.short
@@ -136,9 +137,12 @@ function ShortenForm() {
                         type="number"
                         onChange={handleChange}
                         value={formValues.expiry}
+                        error={"expiry" in formErrors}
+                        helperText={formErrors.expiry}
                         variant="outlined"
                         sx={{ mt: 3 }}
                         inputProps={{ min: 1 }}
+                        required
                     />
                     <Box textAlign="center">
                         <LoadingButton
