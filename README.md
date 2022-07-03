@@ -1,5 +1,5 @@
 # Crisp-URL
-A URL shortener built using React, Go-Fiber and Redis
+A URL shortener built using React, Go-Fiber and Redis. Live demo of the project can be found [here](https://crisp-url.netlify.app).
 
 ## Setup Instructions
 
