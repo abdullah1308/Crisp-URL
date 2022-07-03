@@ -15,7 +15,7 @@ import { useEffect } from "react";
 const DEFAULT_SHORT_HELPER = "Shortened URL Example: localhost:3000/<short>";
 
 function ShortenForm() {
-    const initialFormValues = { url: "", short: "", expiry: 1 };
+    const initialFormValues = { url: "", short: "", expiry: "1" };
     const [formValues, setFormValues] = useState(initialFormValues);
     const [formErrors, setFormErrors] = useState({});
 
