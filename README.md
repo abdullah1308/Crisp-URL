@@ -1,9 +1,11 @@
-# Crisp-URL
-A URL shortener built using React, Go-Fiber and Redis. Live demo of the project can be found [here](https://crisp-url.netlify.app).
+
+# Project-Management-GraphQL
+A simple project management application built to learn GraphQL. The front-end is built using React and the back-end using Node and Express. MongoDB Atlas is used as the database with Mongoose as the data modelling library.
 
 ## Setup Instructions
 
- 1. Docker must be installed to run this application. To install docker visit [here](https://docs.docker.com).
- 2. Clone the repository and open it the terminal. 
- 3. Enter the command `docker-compose up -d` to get it running. 
- 4. The application will visible on http://localhost:3000/
+ 1. Rename **.env-public** to **.env** and fill it out. Set `NODE_ENV` to *'development'* in order to make requests using *GraphiQL*
+ 
+ 2. Run `npm start` to start the back-end
+ 
+ 3. Run `npm start` in the **client** folder to start the front-end. The application should be visible on http://localhost:3000
